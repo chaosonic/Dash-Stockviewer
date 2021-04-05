@@ -26,7 +26,8 @@ to_date = dt.datetime.now()
 #ticker = 'EUNL.F'  # iShares Core MSCI World UCITS ETF USD (Acc) - Frankfurt
 #ticker = 'ESP0.F'   # Van Eck Games ETF
 #ticker = '3CP.SG'   # Xiaomi - Singapore??
-# add something
+# add something else
+
 
 tickers = ['EUNL.F', 'BMW.F',  'RDSA.AS', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS']
 tickers_titels = ['iShares MSCI World ETF', 'BMW', 'Shell A', 'AMD', 'Van Eck Gaming ETF', 'Xiaomi', 'ASML']
