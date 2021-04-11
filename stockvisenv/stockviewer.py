@@ -315,13 +315,53 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
     df = df_all[tickers[chosen_rows[0]]]
 
     #print(df)
-    trace_close = go.Scatter(x=df.index[plotLength:],
+
+    # calculate the short/ fast moving average
+    ShortEMA = df.Close.ewm(span=12, adjust = False).mean()
+    # calculate the middle/medium exp. mov. average
+    MiddleEMA = df.Close.ewm(span=26, adjust = False).mean()
+
+    sLength = len(df)
+    day_start = df['Close'].iloc[sLength+plotLength-1]
+    day_end   = df['Close'].iloc[sLength-1]
+
+    if day_end >= day_start:
+            trace_close = go.Scatter(x=df.index[plotLength:],
                             y=df['Close'][plotLength:],
                             name='Close',
-                            line=dict(color='#000000', width = 1.5))
+   #                         line=dict(color='#000000', width = 1.5),
+                            fill='tozeroy',
+                            line={'color':'green'}
+                            )
+            legend_x = 0.1
+            legend_y = 0.95
+    elif day_end < day_start:
+            trace_close = go.Scatter(x=df.index[plotLength:],
+                            y=df['Close'][plotLength:],
+                            name='Close',
+   #                         line=dict(color='#000000', width = 1.5),
+                            fill='tozeroy',
+                            mode='lines', 
+                            line={'color':'red'}
+                            )
+            legend_x = 0.1
+            legend_y = 0.1
+
+    trace_EMAshort = go.Scatter(x=df.index[plotLength:],
+                         y=ShortEMA[plotLength:],
+                         name='ema_12',
+                         line=dict(color='#0066ff', width = 1.5))
+
+    trace_EMAmedium = go.Scatter(x=df.index[plotLength:],
+                         y=MiddleEMA[plotLength:],
+                         name='ema_26',
+                         line=dict(color='#003380', width = 1.5))
 
 
-    data = [trace_close]
+
+    data = [trace_close, trace_EMAshort ,trace_EMAmedium ]
+
+
 
     layout = dict(
         #title='Time series with range slider and selectors',
@@ -330,35 +370,43 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
         plot_bgcolor='rgba(0,0,0,0)',
         yaxis=dict(
             showgrid = True,
-            gridcolor= 'rgba(1,1,1,1)'
+            gridcolor= 'LightGray'
         ),
-        showlegend = False,
+#        showlegend = False,
+        legend=dict(
+            x=legend_x,
+            y=legend_y,
+            # traceorder='normal',
+            bgcolor='White',
+            font=dict(
+                 size=16,),
+        ),
         xaxis=dict(
-
-            
             rangeslider=dict(
                 visible = False
             ),
             showgrid = True,
-            gridcolor= 'rgba(1,1,1,1)',
+            gridcolor='LightGray',
             type='date'
         )
-
     )
 
     fig = go.Figure(data=data, layout=layout)
 
-    sLength = len(df)
-    day_start = df['Close'].iloc[sLength+plotLength-1]
-    day_end   = df['Close'].iloc[sLength-1]
 
-    fig.update_yaxes(range=[df['Close'][plotLength:].min()*.99,df['Close'][plotLength:].max()*1.01])
+#    fig.update_yaxes(range=[df['Close'][plotLength:].min()*.99,df['Close'][plotLength:].max()*1.01])
+    fig.update_yaxes(range=[
+        np.array([df['Close'][plotLength:].min(), ShortEMA[plotLength:].min(), MiddleEMA[plotLength:].min()]).min()*.99,
+        np.array([df['Close'][plotLength:].max(), ShortEMA[plotLength:].max(), MiddleEMA[plotLength:].max()]).max()*1.01
+        ]
+    )
+    
 
-    if day_end >= day_start:
-        return fig.update_traces(fill='tozeroy',line={'color':'green'})
-    elif day_end < day_start:
-        return fig.update_traces(fill='tozeroy',
-                             line={'color': 'red'})
+    # if day_end >= day_start:
+    #     return fig.update_traces(fill='tozeroy',line={'color':'green'})
+    # elif day_end < day_start:
+    #     return fig.update_traces(fill='tozeroy',
+    #                          line={'color': 'red'})
 
     return fig
 

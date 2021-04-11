@@ -1,4 +1,7 @@
 ## TODO
+- [x] add moving averages (start with simple moving average) 
+      hard-coded fast ema=12 and medium ema = 26
+    - [x] locate the legend depending if increase or decrease- legend is selectabel
 - [x] combine the logo- and the header-callback, which only take the `Input('datatable', "selected_rows")` as input, to one callback.
 
 ## add a datatabel
