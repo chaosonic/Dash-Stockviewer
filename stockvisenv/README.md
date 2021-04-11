@@ -1,3 +1,8 @@
+# Stockvisualizer
+
+This small app visualises stock data as chart and provides performance indicators for different time periods. Additionally, an overview of the stock performances of a protfolio is provided in a datatable, from which a particular stock can be selected to be displayed as chart with the performance indicators.
+
+
 ### Set up the development environment 
 #### Python virtual enviroment
 
