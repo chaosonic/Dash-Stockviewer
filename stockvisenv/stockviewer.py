@@ -10,8 +10,7 @@ from dash.dependencies import Output, Input
 import dash_table
 
 import dash_table.FormatTemplate as FormatTemplate
-from dash_table.Format import Sign
-import pandas as pd
+from dash_table.Format import Sign, Format, Symbol
 from collections import OrderedDict
 
 import dash_bootstrap_components as dbc    # pip install dash-bootstrap-components
@@ -34,7 +33,6 @@ to_date = dt.datetime.now()
 #ticker = '3CP.SG'   # Xiaomi - Singapore??
 # add something else
 
-
 tickers = ['EUNL.F', 'BMW.F',  'RDSA.AS', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS', 'IS3N.F']
 tickers_titels = ['iShares MSCI World ETF', 
                   'BMW', 
@@ -44,9 +42,7 @@ tickers_titels = ['iShares MSCI World ETF',
                   'Xiaomi', 
                   'ASML',
                   'iShares Core MSCI EM IMI']
-#tickers_logos = ['iShares', 'BMW', 'Shell', 'AMD', 'Vaneck', 'Xiaomi']
 
-#
 tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
                  "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
                  "https://upload.wikimedia.org/wikipedia/de/7/74/Royal_Dutch_Shell.svg",
@@ -66,35 +62,33 @@ tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishar
 # vaneck https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png
 
 
-# set up the dictionary for the data table
+# set up the columns-dictionary for the data table
 # columns are [Stock name / 1D / 5D / M / 3M / Y]
-table_header = ['Stock name', '1 day', '5 days', '1 Month ', '3 Months', 'Year']
-tabel_data =[{'Stock name': 'ishare', '1D': 2.1 , '5D': 3.2 , 'M': 4.7 , '3M': 6.5, 'Y': 11.1},
-            {'Stock name': 'AMD', '1D': 2.1 , '5D': 3.2 , 'M': 4.7 , '3M': 6.5, 'Y': 11.1},
-            {'Stock name': 'xiaomi', '1D': 2.1 , '5D': 3.2 , 'M': 4.7 , '3M': 6.5, 'Y': 11.1}
-            ]
+table_header = ['Stock name', 'Price', '1 day', '5 days', '1 Month ', '3 Months', 'Year']
 
 stockPeriods = [1, 5, 20, 60, 300]
 
 def stock_performance(ticker):
     stockPerformance = {}
 
-    stockPerformance[table_header[0]] = tickers_titels[tickers.index(ticker)]
     df = df_all[ticker]
 
     sLength = len(df['Close'])
     day_end   = df['Close'].iloc[sLength-1] 
 
+    stockPerformance[table_header[0]] = tickers_titels[tickers.index(ticker)]
+    stockPerformance[table_header[1]] = day_end
+
     for i in range(len(stockPeriods)):
         day_start = df['Close'].iloc[sLength-stockPeriods[i]-1]
-        stockPerformance[table_header[i+1]] = (day_end - day_start) / day_start
+        stockPerformance[table_header[i+2]] = (day_end - day_start) / day_start
 
     return  stockPerformance
 
 
 # tickerIndex = 1
 
-# set up an dictionary of pandas dataframes
+# set up a dictionary of pandas dataframes
 # How to create an array of dataframes in Python
 # https://stackoverflow.com/questions/33907776/how-to-create-an-array-of-dataframes-in-python
 
@@ -104,19 +98,24 @@ for ticker in tickers:
     df_all[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
     performance.append(stock_performance(ticker))
 
+# set up the columns by hand - the columns-list of dictionaries is referenced by the dash_table.DataTable
+# I don't know, how to combine the different 
+columns = [dict(name = table_header[0], id=table_header[0])]
+
+tmp= {"name" :  table_header[1], "id": table_header[1], 
+      'type': 'numeric',
+      'format': FormatTemplate.money(2).symbol(Symbol.yes).symbol_suffix(' €')
+    }
+columns.append(tmp)   
 
 
-item_id = 'dropdown'
-dropdown_items = [dbc.DropdownMenuItem(item, id=item_id+'_'+item) 
-                  for item in tickers_titels]
+for i in table_header[2:]:
+    tmp= {"name" : i, "id":i, 
+            'type': 'numeric',
+            'format': FormatTemplate.percentage(2).sign(Sign.positive)
+        }
+    columns.append(tmp)   
 
-dropdown_output = Output(item_id, "label")
-dropdown_inputs = [Input(item_id+'_'+item, "n_clicks") for item in tickers_titels]
-
-
-#df_table= pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
-
-#print(df_table.to_dict('records'))
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 external_stylesheets =[dbc.themes.BOOTSTRAP]
@@ -138,33 +137,60 @@ app.layout = dbc.Container([
             dbc.Row([
                 dbc.Col([ 
                     dash_table.DataTable(id='datatable',
-#                        columns=[{"name": i, "id": i} for i in df_table.columns],
-                        columns=[{"name": i, "id": i, 
-                        'type': 'numeric',
-                        'format': FormatTemplate.percentage(2).sign(Sign.positive)} for i in table_header],
-#                        data=df_table.to_dict('records'),
+                        columns= columns,
                         data = performance,
-#                        data = tabel_data,
-#                        precision=2,
                         editable= False,
                         row_deletable= False,
                         row_selectable="single",
-                        selected_rows=[0]
+                        selected_rows=[0],
+                        style_header={
+                            'fontWeight': 'bold',
+                            'backgroundColor': 'rgb(200, 200, 200)',
+                        },
+                        style_data_conditional=([
+                            {
+                                'if': {
+                                    'filter_query': '{{{col}}} < 0'.format(col=col) ,
+                                    'column_id': col
+                                },
+                                'color': 'red',
+                                'fontWeight': 'bold'
+                            }
+                            for col in table_header[2:]
+                        ]
+                        +
+                        [
+                            {
+                                'if': {
+                                    'filter_query': '{{{col}}} > 0'.format(col=col) ,
+                                    'column_id': col
+                                },
+                                'color': 'green',
+                                'fontWeight': 'bold'
+                            }
+                            for col in table_header[2:]
+                        ]
+                        +
+                        [
+                           {
+                                'if': {'column_id': 'Stock name'},
+                                'textAlign': 'left',
+                                'fontWeight': 'bold'
+                           },
+                           {
+                                'if': {'column_id': 'Price'},
+                                'fontWeight': 'bold'
+                           },
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(230, 230, 230)'
+                            }
+                        ]
+                        )
                     )
                 ])
             ], style={"width": "50rem"},
-            className="mt-3"),    
-#             dbc.Row([
-#                 dbc.Col([    
-#                     dbc.DropdownMenu(
-#                             dropdown_items, 
-#                             label=tickers_titels[0], 
-#                             addon_type="prepend",
-# #                            bs_size="sm",
-#                             id=item_id
-#                         )
-#                 ]),
-#             ], justify="between"),  
+            className="mt-3"),     
             dbc.Card([
                     dbc.CardBody([
                         dbc.Row([
@@ -229,57 +255,20 @@ app.layout = dbc.Container([
     dcc.Interval(id='update', n_intervals=0, interval=1000*600)
 ])
 
-
-# Stackoverflow: create bootstrap drop down menu in plotly dash using one function to set it up
-#  https://stackoverflow.com/questions/65806214/create-bootstrap-drop-down-menu-in-plotly-dash-using-one-function-to-set-it-up
-''' 
-@app.callback(dropdown_output,dropdown_inputs)
-def update_label(*args):
-    # get the triggered item
-    ctx = dash.callback_context
-    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    # get the label for the triggered id or return no selection
-    if (np.array([n==None for n in args]).all()) or not ctx.triggered:
-        label = [tickers_titels[0]]
-        return label 
-    else:
-        return [label for label in tickers_titels if item_id+'_'+label == triggered_id]
-''' 
 # 
 # Plotly Dash: How to change header title based on user input?
 #         https://stackoverflow.com/questions/62050548/plotly-dash-how-to-change-header-title-based-on-user-input
-
-@app.callback(
-   [Output('ticker_header', 'children')], 
-#   Input(item_id, "label"),
-   Input('datatable', "selected_rows")
-   )
-#def update_ticker_header(label, chosen_rows):
-def update_ticker_header(chosen_rows):
-
-#    return [f'{label[0]}']
-    return [f'{tickers_titels[chosen_rows[0]]}']
-
-
-# handle callbacks fpr images
+# handle callbacks fpr images:
 # Looking for a better way to display image
 #         https://community.plotly.com/t/looking-for-a-better-way-to-display-image/15672/2
 
 @app.callback(
-    Output('image_logo', 'src'), 
-#    Input(item_id, "label"),
-    Input('datatable', "selected_rows")
-    )
-#def update_ticker_logo(label, chosen_rows):
-def update_ticker_logo(chosen_rows):
-
-    #tickerIndex = tickers_titels.index(label[0])
-
-#    return tickers_logos[tickerIndex]
-    return tickers_logos[chosen_rows[0]]
-
-
-
+   [Output('ticker_header', 'children'),
+   Output('image_logo', 'src')], 
+   Input('datatable', "selected_rows")
+   )
+def update_ticker_header(chosen_rows):
+    return ([f'{tickers_titels[chosen_rows[0]]}'],tickers_logos[chosen_rows[0]] )
 
 # An output-id can only have one callback.
 # use multiple inputs and determine, which one has been fired
@@ -293,10 +282,8 @@ def update_ticker_logo(chosen_rows):
     [Input("button_M", "n_clicks")],
     [Input("button_3M", "n_clicks")],
     [Input("button_Y", "n_clicks")],
-#    Input(item_id, "label"),
     Input('datatable', "selected_rows")
 )
-#def on_button_click(btn1, btn2, btn3, btn4, label, chosen_rows):
 def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 
 
@@ -390,17 +377,12 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 #       fig: plotly-figure object
 #----------------------------------------------------------------------------------
 def indicatorPerformance(day_start, day_end):
-    #dff_rv = dff.iloc[::-1]
-    #day_start = dff_rv[dff_rv['date'] == dff_rv['date'].min()]['rate'].values[0]
-    #day_end = dff_rv[dff_rv['date'] == dff_rv['date'].max()]['rate'].values[0]
-    
+
     fig = go.Figure(go.Indicator(
         mode="delta",
         value=day_end,
-        #title = {"text": "1D"},
         delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
     
-    #fig.update_traces(title_font={'size':16})
     fig.update_traces(delta_font={'size':25})
     fig.update_traces(number_font={'size':25})
     fig.update_layout(height=80, width=150)
@@ -454,85 +436,29 @@ def graph_1_callback(timer1, chosen_rows):
     
     return fig
 
-# Indicator Graph 5D
-@app.callback(
+# Indicator Graphs below the buttons
+@app.callback([
     Output('indicator-graph', 'figure'),
-    Input('update', 'n_intervals'),
-#    Input(item_id, "label"),
-    Input('datatable', "selected_rows")
+    Output('indicator-graph2', 'figure'),
+    Output('indicator-graph3', 'figure'),
+    Output('indicator-graph4', 'figure')],
+    [Input('update', 'n_intervals'),
+    Input('datatable', "selected_rows")]
 )
-#def graph_1_callback(timer1, label, chosen_rows):
 def graph_1_callback(timer1, chosen_rows):
 
-#    df = df_all[tickers[tickers_titels.index(label[0])]]
     df = df_all[tickers[chosen_rows[0]]]
 
     sLength = len(df)
-    day_start = df['Close'].iloc[sLength-6]
     day_end   = df['Close'].iloc[sLength-1]
-    fig = indicatorPerformance(day_start, day_end)
+
+    indicators = []
+    for i in stockPeriods[1:]:
+        day_start = df['Close'].iloc[sLength-i-1]
+        indicators.append(indicatorPerformance(day_start, day_end))
     
-    return fig
+    return indicators
 
-# Indicator Graph
-@app.callback(
-    Output('indicator-graph2', 'figure'),
-    Input('update', 'n_intervals'),
-#    Input(item_id, "label"),
-    Input('datatable', "selected_rows")
-)
-#def graph_2_callback(timer2, label, chosen_rows):
-def graph_2_callback(timer2, chosen_rows):
-
-#    df = df_all[tickers[tickers_titels.index(label[0])]]
-    df = df_all[tickers[chosen_rows[0]]]
-
-    sLength = len(df)
-    day_start = df['Close'].iloc[sLength-21]
-    day_end   = df['Close'].iloc[sLength-1]
-    fig = indicatorPerformance(day_start, day_end) 
-
-    return fig
-
-# Indicator Graph
-@app.callback(
-    Output('indicator-graph3', 'figure'),
-    Input('update', 'n_intervals'),
-#    Input(item_id, "label"),
-    Input('datatable', "selected_rows")
-)
-#def update_graph(timer3, label, chosen_rows):
-def update_graph(timer3, chosen_rows):
-
-#    df = df_all[tickers[tickers_titels.index(label[0])]]
-    df = df_all[tickers[chosen_rows[0]]]
-
-    sLength = len(df)
-    day_start = df['Close'].iloc[sLength-61]
-    day_end   = df['Close'].iloc[sLength-1]
-    fig = indicatorPerformance(day_start, day_end)
-
-    return fig
-
-# Indicator Graph
-@app.callback(
-    Output('indicator-graph4', 'figure'),
-    Input('update', 'n_intervals'),
-#    Input(item_id, "label"),
-    Input('datatable', "selected_rows")
-)
-#def update_graph(timer4, label, chosen_rows):
-def update_graph(timer4, chosen_rows):
-
-#    df = df_all[tickers[tickers_titels.index(label[0])]]
-    df = df_all[tickers[chosen_rows[0]]]
-
-    sLength = len(df)
-    day_start = df['Close'].iloc[sLength-301]
-    day_end   = df['Close'].iloc[sLength-1]
-    fig = indicatorPerformance(day_start, day_end)
-
-    return fig
 
 
 
