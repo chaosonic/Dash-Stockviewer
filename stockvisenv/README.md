@@ -50,6 +50,7 @@ intelligent copying of the code from the links below.
 * initial 5 day chart of the closing price 
 * buttons to modify the displayed time period 5D, 1 Month, 3 months time range
 * indicators below the buttons showing the color-coded performance of the stock over these time periods
+
 ![Stockvisualizer impression](./assets/Stockvisualizer_impression.png)
 
 ### Running the app
@@ -98,7 +99,7 @@ Go to the browser an navigate to `http://127.0.0.1:8050/` to see something like 
 
 ### useful Dash-tutorials
 
-- [Dash By Plotly (Python)](https://www.youtube.com/playlist?list=PLCDERj-IUIFCaELQ2i7AwgD2M6Xvc4Slf)
+- [Dash By Plotly (Python)](https://www.youtube.com/playlist?list=PLCDERj-IUIFCaELQ2i7AwgD2M6Xvc4Slf) - codebliss
 - Thanks to [Charming Data](https://www.youtube.com/channel/UCqBFsuAz41sqWcFjZkqmJqQ) on youtube.
    - Build a Financial Dashboard - Python Dash - [Part 1](https://www.youtube.com/watch?v=iOkMaeU8dqE) & [Part 2](https://www.youtube.com/watch?v=catwYsqkhqY)
    - [How to Format the Dash DataTable](https://www.youtube.com/watch?v=S8ZcErBpfYE)

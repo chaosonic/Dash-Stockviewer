@@ -36,7 +36,7 @@ def stock_performance(ticker):
 
 - the current implementation sets the values of all columns to `percentage` with two decimal positions. This works fine, as long as only performance data is shown.
   When the close price is added, the values in the columns are also treated a percentage. 
-  '''
+  ~~~
   dash_table.DataTable(id='datatable',
         columns=  [
             {"name": i, "id": i,
@@ -47,7 +47,7 @@ def stock_performance(ticker):
         data = performance,
         editable= False,
         ...
-   '''
+   ~~~
    The solution is to define the format inside the column dictionary. Hence the overall columns-definition consists of three parts. The `Stock name` - no specific format, `Price` with 2 decimal precision and as € and the remaining columns `1 day, 5 days, month ....`  (time periods) as 2 decimal percentage.
    * For the price there is a specific `FormatTemplate.money(2)` - which however shows `$`-currency and no `€`. 
       * as `FormatTemplate.percentage(2).sign(Sign.positive)` is extended by `.sign(..)`, perhaps this works with `FormatTemplate.money`, too.

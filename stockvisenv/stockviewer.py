@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 
 
 # Get Dates From DateEntry and Convert It To Datetime
-from_date = dt.datetime(2020, 1, 1)
+from_date = dt.datetime(2020, 5, 1)
 to_date = dt.datetime.now()
 
 #ticker = 'LYYA.F'   # Lyxor MSCI World - Frankfurt
@@ -33,7 +33,8 @@ to_date = dt.datetime.now()
 #ticker = '3CP.SG'   # Xiaomi - Singapore??
 # add something else
 
-tickers = ['EUNL.F', 'BMW.F',  'RDSA.AS', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS', 'IS3N.F']
+# 15.02.22: /\|_=)(: changed RDSA.AS to  R6C0.F
+tickers = ['EUNL.F', 'BMW.F',  'R6C0.F', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS', 'IS3N.F']
 tickers_titels = ['iShares MSCI World ETF', 
                   'BMW', 
                   'Shell A', 
@@ -293,7 +294,7 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 
     #print(ctx.triggered, chosen_rows)
     if (not ctx.triggered) or (ctx_trigger == "dropdown") or (ctx_trigger == "datatable"):
-        button_id = "button_5D"
+        button_id = "button_3M"
     else:
         button_id = ctx_trigger
 
@@ -314,7 +315,7 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 #    df = df_all[tickers[tickers_titels.index(label[0])]]    
     df = df_all[tickers[chosen_rows[0]]]
 
-    #print(df)
+    # print(df.head(5))
 
     # calculate the short/ fast moving average
     ShortEMA = df.Close.ewm(span=12, adjust = False).mean()
@@ -517,4 +518,3 @@ def graph_1_callback(timer1, chosen_rows):
 
 if __name__ == '__main__':
   app.run_server(debug=True)
-
