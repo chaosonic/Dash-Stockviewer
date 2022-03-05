@@ -94,13 +94,29 @@ def stock_performance(ticker):
 # https://stackoverflow.com/questions/33907776/how-to-create-an-array-of-dataframes-in-python
 
 df_all = {}
-performance = []
-for ticker in tickers:
-    df_all[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
-    performance.append(stock_performance(ticker))
+# performance = []
+
+def stockTimetrace():
+
+    for ticker in tickers:
+        df_all[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
+    
+    return df_all
+
+def stockPerformance():
+    performance = []
+    for ticker in tickers:
+        performance.append(stock_performance(ticker))
+
+    return performance
+
+df_all = stockTimetrace()
+performance = stockPerformance()
+
+#print(performance[2])
 
 # set up the columns by hand - the columns-list of dictionaries is referenced by the dash_table.DataTable
-# I don't know, how to combine the different 
+# I don't know, how to combine them differently 
 columns = [dict(name = table_header[0], id=table_header[0])]
 
 tmp= {"name" :  table_header[1], "id": table_header[1], 
@@ -145,9 +161,11 @@ app.layout = dbc.Container([
                         row_selectable="single",
                         selected_rows=[0],
                         style_header={
-                            'fontWeight': 'bold',
+                        #    'fontWeight': 'bold',
                             'backgroundColor': 'rgb(200, 200, 200)',
                         },
+                        style_cell={'fontSize':15},
+                        style_table={'height': '300px', 'overflowY': 'auto'},
                         style_data_conditional=([
                             {
                                 'if': {
@@ -155,7 +173,7 @@ app.layout = dbc.Container([
                                     'column_id': col
                                 },
                                 'color': 'red',
-                                'fontWeight': 'bold'
+                            #    'fontWeight': 'bold'
                             }
                             for col in table_header[2:]
                         ]
@@ -167,7 +185,7 @@ app.layout = dbc.Container([
                                     'column_id': col
                                 },
                                 'color': 'green',
-                                'fontWeight': 'bold'
+                            #    'fontWeight': 'bold'
                             }
                             for col in table_header[2:]
                         ]
@@ -176,7 +194,7 @@ app.layout = dbc.Container([
                            {
                                 'if': {'column_id': 'Stock name'},
                                 'textAlign': 'left',
-                                'fontWeight': 'bold'
+                            #    'fontWeight': 'bold'
                            },
                            {
                                 'if': {'column_id': 'Price'},
@@ -190,8 +208,8 @@ app.layout = dbc.Container([
                         )
                     )
                 ])
-            ], style={"width": "50rem"},
-            className="mt-3"),     
+            ], style={"width": "50rem", 'padding': '5px'},
+            className="mt-6"),     
             dbc.Card([
                     dbc.CardBody([
                         dbc.Row([
@@ -199,7 +217,7 @@ app.layout = dbc.Container([
                                 style={"width": "8rem"},
                                 ),
 #                                html.H1(tickers_titels[tickerIndex], className="card-title")
-                                html.H1(id='ticker_header', className="card-title"),
+                                html.H2(id='ticker_header', className="card-title"),
                                 dcc.Graph(id='indicator-graph_day', figure={},
                                           config={'displayModeBar':False})
                         ], justify="between"),
@@ -211,16 +229,16 @@ app.layout = dbc.Container([
                         ]),
                         dbc.Row([
                             dbc.Col([
-                                dbc.Button('5D',  id="button_5D", block=True)
+                                dbc.Button('5D',  id="button_5D", block=True, size='sm')
                             ]),
                             dbc.Col([
-                                dbc.Button('M',  id="button_M",  block=True)
+                                dbc.Button('M',  id="button_M",  block=True, size='sm')
                             ]),
                             dbc.Col([
-                                dbc.Button('3M',  id="button_3M",  block=True)
+                                dbc.Button('3M',  id="button_3M",  block=True, size='sm')
                             ]),
                             dbc.Col([
-                                dbc.Button('Y',  id="button_Y",  block=True)
+                                dbc.Button('Y',  id="button_Y",  block=True, size='sm')
                             ])
                         ], justify="between"),
                         dbc.Row([
@@ -253,8 +271,22 @@ app.layout = dbc.Container([
         ], width=6)
     ], justify='center'),
 
-    dcc.Interval(id='update', n_intervals=0, interval=1000*600)
+    dcc.Interval(id='update', n_intervals=0, interval=1000*3600)
 ])
+
+# callback to  get the stock data again and update the table
+
+@app.callback(
+    Output('datatable', 'data'), 
+    Input('update', "n_intervals")
+   )
+def update_stockdata(timer1):
+    print('reading stocks')
+    df_all = stockTimetrace()
+    performance = stockPerformance()
+
+    return (performance)
+
 
 # 
 # Plotly Dash: How to change header title based on user input?
@@ -315,6 +347,8 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 #    df = df_all[tickers[tickers_titels.index(label[0])]]    
     df = df_all[tickers[chosen_rows[0]]]
 
+
+    #print(chosen_rows[0])
     # print(df.head(5))
 
     # calculate the short/ fast moving average
@@ -369,6 +403,7 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
         margin=dict(t=0, r=0, l=0, b=20),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
+        height=400,
         yaxis=dict(
             showgrid = True,
             gridcolor= 'LightGray'
@@ -380,7 +415,7 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
             # traceorder='normal',
             bgcolor='White',
             font=dict(
-                 size=16,),
+                 size=12,),
         ),
         xaxis=dict(
             rangeslider=dict(
@@ -415,7 +450,8 @@ def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 
 #----------------------------------------------------------------------------------
 # function
-# set up the indicator graph showing the performace between start and end data
+# set up the indicator graph showing the performace between start and end data.
+# Indicators below the buttons
 # Plotly Indicators in Python: https://plotly.com/python/indicator/
 # Plotly Reference: indicator: https://plotly.com/python/reference/indicator/
 # Input 
@@ -432,9 +468,9 @@ def indicatorPerformance(day_start, day_end):
         value=day_end,
         delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
     
-    fig.update_traces(delta_font={'size':25})
-    fig.update_traces(number_font={'size':25})
-    fig.update_layout(height=80, width=150)
+    fig.update_traces(delta_font={'size':20})
+    fig.update_traces(number_font={'size':20})
+    fig.update_layout(height=60, width=120)
 
     if day_end >= day_start:
         fig.update_traces(delta_increasing_color='green')
@@ -459,6 +495,7 @@ def indicatorPerformance(day_start, day_end):
 #def graph_1_callback(timer1, label, chosen_rows):
 def graph_1_callback(timer1, chosen_rows):
 
+
 #    df = df_all[tickers[tickers_titels.index(label[0])]]
     df = df_all[tickers[chosen_rows[0]]]
     sLength = len(df)
@@ -474,9 +511,9 @@ def graph_1_callback(timer1, chosen_rows):
     )
     
     #fig.update_traces(title_font={'size':16})
-    fig.update_traces(delta_font={'size':30})
-    fig.update_traces(number_font={'size':30})
-    fig.update_layout(height=100, width=150)
+    fig.update_traces(delta_font={'size':25})
+    fig.update_traces(number_font={'size':25})
+    fig.update_layout(height=60, width=150)
 
     if day_end >= day_start:
         fig.update_traces(delta_increasing_color='green')
@@ -507,6 +544,21 @@ def graph_1_callback(timer1, chosen_rows):
         indicators.append(indicatorPerformance(day_start, day_end))
     
     return indicators
+
+
+
+# Reload the Stock Information and store it in df_all & performance again
+# here without updating figs or indicators
+#@app.callback(
+#    [Input('update', 'n_intervals')]
+#)
+#def updateStockInfo_callback(timer1):
+    #df_all = stockTimetrace()
+    #performance = stockPerformance()
+#    print('callback updateStockInfo')
+
+
+
 
 
 
