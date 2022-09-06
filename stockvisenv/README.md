@@ -73,7 +73,7 @@ Go to the browser an navigate to `http://127.0.0.1:8050/` to see something like 
 ### Improvements 
 
 #### Version 2
-![Stockvisualizer impression](./assets/StockViewer_impression_V2.png)
+![Stockvisualizer impression](./assets/StockViewer_Impression_V2.png)
 
 * Dropdown menu with predefined stocks  - when one is selected, all the notations, indicators and line charts are updated.
 * Logo and title of the selected stock in the card header. The logos are pulled from the web, but the code can be modified to serve the locally stored logos 
@@ -81,7 +81,7 @@ Go to the browser an navigate to `http://127.0.0.1:8050/` to see something like 
 * Tab-title renamed to `StockViewer`
 
 #### Version 3
-![Stockvisualizer impression](./assets/StockViewer_impression_V3.png)
+![Stockvisualizer impression](./assets/StockViewer_Impression_V3.png)
 
 * add a table showing all the stocks and their performance (1D, 5D, M, 3M, Y).
 * The rows of the table are selectable. The chart and the performance indicators change accordingly 
