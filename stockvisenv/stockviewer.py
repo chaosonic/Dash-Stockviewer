@@ -225,20 +225,14 @@ def renderDataTable(app):
             }
         ]
         )
-    )
+    )     
+    # --- End Set-up the DataTable
 
     return  [
             dbc.Col([ 
                 dataTable
             ])
         ]
-    
-    # dataTable
-
-
-
-
-    # --- End Set-up the DataTable
 
 # --- End def renderDatatable
 # ----------------------------------------------------
@@ -250,6 +244,24 @@ def renderDataTable(app):
 # Displaying a Stock-logo, the Stock-title and the closing price with percentage indicator
 # -----------------------------------------------------------------------
 def renderStockHeader(app):
+
+
+    # 
+    # Plotly Dash: How to change header title based on user input?
+    #         https://stackoverflow.com/questions/62050548/plotly-dash-how-to-change-header-title-based-on-user-input
+    # handle callbacks fpr images:
+    # Looking for a better way to display image
+    #         https://community.plotly.com/t/looking-for-a-better-way-to-display-image/15672/2
+
+    @app.callback(
+    [Output('ticker_header', 'children'),
+    Output('image_logo', 'src')], 
+    Input('datatable', "selected_rows")
+    )
+    def update_ticker_header(chosen_rows):
+        return ([f'{tickers_titels[chosen_rows[0]]}'],tickers_logos[chosen_rows[0]] )
+
+
 
     #-----------------------------------------------------------------------
     # callbacks for the performance indicators
@@ -329,7 +341,7 @@ def renderStockTimeSeries(app):
         [Input("button_Y", "n_clicks")],
         Input('datatable', "selected_rows")
     )
-    # -- Start function "on_button_click"
+    # -- Start function "on_button_click"  --> define the TimeSeriesPlot
     def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 
 
@@ -466,15 +478,6 @@ def renderStockTimeSeries(app):
                 config={'displayModeBar':False})   
             ])
         ]
-    
-    
-    #dcc.Graph(id='daily-line', figure={},
-    #        config={'displayModeBar':False})
-
-
-
-
-
 
 # --- End function 'renderStockTimeSeries'
 
@@ -565,6 +568,75 @@ def renderButtonIndicators(app):
 
 # --- End Function 'renderButtonIndicators(app)'
 
+
+
+#----------------------------------------------------------------------------------
+# function
+# set up the indicator graph showing the performace between start and end data.
+# Indicators below the buttons
+# Plotly Indicators in Python: https://plotly.com/python/indicator/
+# Plotly Reference: indicator: https://plotly.com/python/reference/indicator/
+# Input 
+#      day_start: 
+#       day_end  :
+#
+# output
+#       fig: plotly-figure object
+#----------------------------------------------------------------------------------
+def indicatorPerformance(day_start, day_end):
+
+    fig = go.Figure(go.Indicator(
+        mode="delta",
+        value=day_end,
+        delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
+    
+    fig.update_traces(delta_font={'size':20})
+    fig.update_traces(number_font={'size':20})
+    fig.update_layout(height=60, width=120)
+
+    if day_end >= day_start:
+        fig.update_traces(delta_increasing_color='green')
+    elif day_end < day_start:
+        fig.update_traces(delta_decreasing_color='red')
+    
+    return fig
+# --- End 'indicatorPerformance'
+
+# ----------------------------------------------------
+# def create_layout():
+# Function to set up the layout.
+# a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
+#
+# ----------------------------------------------------
+def create_layout(app):
+
+    return dbc.Container([
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Row(renderDataTable(app), 
+                            style={"width": "50rem", 'padding': '5px'},
+                            className="mt-6"),     
+                        dbc.Card([
+                                dbc.CardBody([
+                                    dbc.Row(renderStockHeader(app),  justify="between"),
+                                    dbc.Row(renderStockTimeSeries(app)),
+                                    dbc.Row(renderButtons(app), justify="between"),
+                                    dbc.Row(renderButtonIndicators(app), justify="between"),
+                                ]),
+                            ],
+                            style={"width": "50rem"},
+                            className="mt-3"
+                        )
+                    ], width=6)
+                ], justify='center'),
+
+                dcc.Interval(id='update', n_intervals=0, interval=1000*3600)
+            ])
+
+# --- End 'stockTimetrace'
+
+
+
 # ----------------------------------------------------
 # def stockTimetrace():
 #
@@ -603,126 +675,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
                             'content': 'width=device-width, initial-scale=1.0'}]
                 )
 
-
-app.layout = dbc.Container([
-    dbc.Row([
-        dbc.Col([
-            dbc.Row(renderDataTable(app), 
-                style={"width": "50rem", 'padding': '5px'},
-                className="mt-6"),     
-            dbc.Card([
-                    dbc.CardBody([
-                        dbc.Row(renderStockHeader(app),  justify="between"),
-                        dbc.Row(renderStockTimeSeries(app)),
-                        dbc.Row(renderButtons(app), justify="between"),
-                        dbc.Row(renderButtonIndicators(app), justify="between"),
-                    ]),
-                ],
-                style={"width": "50rem"},
-                className="mt-3"
-            )
-        ], width=6)
-    ], justify='center'),
-
-    dcc.Interval(id='update', n_intervals=0, interval=1000*3600)
-])
-
-
-# 
-# Plotly Dash: How to change header title based on user input?
-#         https://stackoverflow.com/questions/62050548/plotly-dash-how-to-change-header-title-based-on-user-input
-# handle callbacks fpr images:
-# Looking for a better way to display image
-#         https://community.plotly.com/t/looking-for-a-better-way-to-display-image/15672/2
-
-@app.callback(
-   [Output('ticker_header', 'children'),
-   Output('image_logo', 'src')], 
-   Input('datatable', "selected_rows")
-   )
-def update_ticker_header(chosen_rows):
-    return ([f'{tickers_titels[chosen_rows[0]]}'],tickers_logos[chosen_rows[0]] )
-
-
-# -- start moving fig to function 'renderStockGraph' 
-
-
-# -- end moving fig to function 'renderStockGraph' 
-
-#----------------------------------------------------------------------------------
-# function
-# set up the indicator graph showing the performace between start and end data.
-# Indicators below the buttons
-# Plotly Indicators in Python: https://plotly.com/python/indicator/
-# Plotly Reference: indicator: https://plotly.com/python/reference/indicator/
-# Input 
-#      day_start: 
-#       day_end  :
-#
-# output
-#       fig: plotly-figure object
-#----------------------------------------------------------------------------------
-def indicatorPerformance(day_start, day_end):
-
-    fig = go.Figure(go.Indicator(
-        mode="delta",
-        value=day_end,
-        delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
-    
-    fig.update_traces(delta_font={'size':20})
-    fig.update_traces(number_font={'size':20})
-    fig.update_layout(height=60, width=120)
-
-    if day_end >= day_start:
-        fig.update_traces(delta_increasing_color='green')
-    elif day_end < day_start:
-        fig.update_traces(delta_decreasing_color='red')
-    
-    return fig
-
-#-----------------------------------------------------------------------
-# callbacks for the performance indicators
-# 
-#
-#------------------------------------------------------------------------
-
-# Indicator Graph 1D
-# @app.callback(
-#     Output('indicator-graph_day', 'figure'),
-#     [Input('update', 'n_intervals'),
-# #    Input(item_id, "label"),
-#     Input('datatable', "selected_rows")]
-# )
-# #def graph_1_callback(timer1, label, chosen_rows):
-# def graph_1_callback(timer1, chosen_rows):
-
-
-# #    df = df_all[tickers[tickers_titels.index(label[0])]]
-#     df = df_all[tickers[chosen_rows[0]]]
-#     sLength = len(df)
-#     day_start = df['Close'].iloc[sLength-2]
-#     day_end   = df['Close'].iloc[sLength-1]
-    
-#     fig = go.Figure(go.Indicator(
-#         mode="delta + number",
-#         value=day_end,
-#         number ={'prefix' : "€ ", 'valueformat' : '.2f'},
-#         #title = {"text": "1D"},
-#         delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'})
-#     )
-    
-#     #fig.update_traces(title_font={'size':16})
-#     fig.update_traces(delta_font={'size':25})
-#     fig.update_traces(number_font={'size':25})
-#     fig.update_layout(height=60, width=150)
-
-#     if day_end >= day_start:
-#         fig.update_traces(delta_increasing_color='green')
-#     elif day_end < day_start:
-#         fig.update_traces(delta_decreasing_color='red')
-    
-#     return fig
-
+app.layout = create_layout(app)
 
 
 if __name__ == '__main__':
