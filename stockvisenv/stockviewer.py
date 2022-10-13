@@ -3,14 +3,13 @@ import numpy as np                         # pip install numpy
 import pandas as pd                        # pip install panda
 import pandas_datareader as web
 
-import dash                                # pip install dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Output, Input
-import dash_table
+from dash import Dash, dcc, html, Input, Output, ctx  # pip install dash
+from dash import dash_table
+from dash.dash_table import DataTable, FormatTemplate
 
-import dash_table.FormatTemplate as FormatTemplate
-from dash_table.Format import Sign, Format, Symbol
+from dash_bootstrap_components.themes import BOOTSTRAP
+
+from dash.dash_table.Format import Sign, Format, Symbol
 from collections import OrderedDict
 
 import dash_bootstrap_components as dbc    # pip install dash-bootstrap-components
@@ -47,15 +46,6 @@ tickers_titels = ['iShares MSCI World ETF',
                   'ASML',
                   'iShares Core MSCI EM IMI']
 
-tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
-                 "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
-                 "https://upload.wikimedia.org/wikipedia/de/7/74/Royal_Dutch_Shell.svg",
-                 "https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg",
-                 "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png",
-                 "https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg",
-                 "https://upload.wikimedia.org/wikipedia/commons/6/6c/ASML_Holding_N.V._logo.svg",
-                 "https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg"
-                 ]
 
 # correspondig png
 # smiley https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mr._Smiley_Face.svg/240px-Mr._Smiley_Face.svg.png
@@ -85,7 +75,7 @@ def renderDataTable(app):
       Input('update', "n_intervals")
       )
     def update_stockdata(timer1):
-        print('reading stocks')
+        #print('reading stocks')
         global df_all 
         df_all= stockTimetrace()
 
@@ -160,7 +150,7 @@ def renderDataTable(app):
         for i in TABLE_HEADER[2:]:
             tmp= {"name" : i, "id":i, 
                     'type': 'numeric',
-                    'format': FormatTemplate.percentage(2).sign(Sign.positive)
+                    'format': FormatTemplate.percentage(1).sign(Sign.positive)
                 }
             columns.append(tmp)   
 
@@ -172,7 +162,8 @@ def renderDataTable(app):
     #---------------------------------------------------
     # set up the Dash-DataTable 
     #---------------------------------------------------
-    dataTable = dash_table.DataTable(id='datatable',
+    #dataTable = dash_table.DataTable(id='datatable',
+    dataTable = DataTable(id='datatable',
         columns= dataTable_columms(),
         data = stockPerformanceTable(),
         editable= False,
@@ -236,6 +227,28 @@ def renderDataTable(app):
 
 # --- End def renderDatatable
 # ----------------------------------------------------
+
+
+# -----------------------------------------------------------------------
+# def renderDropdown(app):
+# Function to render the dropdown to select the things to plot in the timeseries
+# * Candlesticks (OHLC)
+# * short & long moving averages
+# -----------------------------------------------------------------------
+def renderDropdown(app):
+    return [
+            dcc.Dropdown(
+                options={
+                        'OHLC': 'Candlestick (OHLC)',
+                        'EMA': 'EMA12/26',
+                },
+                value='EMA',
+                multi=True
+            )
+    ]
+
+# --- End def renderDropdown(app):
+# ----------------------------------------------------
  
 
 # -----------------------------------------------------------------------
@@ -245,6 +258,15 @@ def renderDataTable(app):
 # -----------------------------------------------------------------------
 def renderStockHeader(app):
 
+    tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
+                    "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
+                    "https://upload.wikimedia.org/wikipedia/de/7/74/Royal_Dutch_Shell.svg",
+                    "https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg",
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png",
+                    "https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg",
+                    "https://upload.wikimedia.org/wikipedia/commons/6/6c/ASML_Holding_N.V._logo.svg",
+                    "https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg"
+                    ]
 
     # 
     # Plotly Dash: How to change header title based on user input?
@@ -295,9 +317,9 @@ def renderStockHeader(app):
         )
         
         #fig.update_traces(title_font={'size':16})
-        fig.update_traces(delta_font={'size':25})
-        fig.update_traces(number_font={'size':25})
-        fig.update_layout(height=60, width=150)
+        fig.update_traces(delta_font={'size':20})
+        fig.update_traces(number_font={'size':20})
+        fig.update_layout(height=50, width=120)
 
         if day_end >= day_start:
             fig.update_traces(delta_increasing_color='green')
@@ -308,13 +330,19 @@ def renderStockHeader(app):
 
 
     return [
-            html.Img(id='image_logo',
-            style={"width": "8rem"},
-            ),
+            dbc.Col([
+                html.Img(id='image_logo',
+                    style={"height": "3rem", "width":"8rem"},
+                    )
+            ]),
             #             html.H1(tickers_titels[tickerIndex], className="card-title")
-            html.H2(id='ticker_header', className="card-title"),
-            dcc.Graph(id='indicator-graph_day', figure={},
+            dbc.Col([
+                html.H3(id='ticker_header', className="text-nowrap")
+            ], width=6),
+            dbc.Col([
+                dcc.Graph(id='indicator-graph_day', figure={},
                         config={'displayModeBar':False})
+            ])
         ]
 # --- End def renderStockHeader(app):
 # ----------------------------------------------------
@@ -345,12 +373,14 @@ def renderStockTimeSeries(app):
     def on_button_click(btn1, btn2, btn3, btn4, chosen_rows):
 
 
-        ctx = dash.callback_context
+    #    ctx = Dash.callback_context
 
-        ctx_trigger = ctx.triggered[0]['prop_id'].split('.')[0]
+        # ctx_trigger = ctx.triggered[0]['prop_id'].split('.')[0]
+        ctx_trigger = ctx.triggered_id
 
         #print(ctx.triggered, chosen_rows)
-        if (not ctx.triggered) or (ctx_trigger == "dropdown") or (ctx_trigger == "datatable"):
+    #    if (not ctx.triggered) or (ctx_trigger == "dropdown") or (ctx_trigger == "datatable"):
+        if (not ctx.triggered_id) or (ctx_trigger == "dropdown") or (ctx_trigger == "datatable"):
             button_id = "button_3M"
         else:
             button_id = ctx_trigger
@@ -417,9 +447,14 @@ def renderStockTimeSeries(app):
                             name='ema_26',
                             line=dict(color='#003380', width = 1.5))
 
+        trace_Candlestick = go.Candlestick(x=df.index[plotLength:], 
+                            open=df['Open'][plotLength:],
+                            high=df['High'][plotLength:],
+                            low=df['Low'][plotLength:],
+                            close=df['Close'][plotLength:],
+                            name='OHLC')
 
-
-        data = [trace_close, trace_EMAshort ,trace_EMAmedium ]
+        data = [trace_close, trace_EMAshort ,trace_EMAmedium, trace_Candlestick ]
 
 
 
@@ -490,21 +525,36 @@ def renderStockTimeSeries(app):
 # -----------------------------------------------------------------------
 def renderButtons(app):
 
-    return [
-        dbc.Col([
-            dbc.Button('5D',  id="button_5D", block=True, size='sm')
-        ]),
-        dbc.Col([
-            dbc.Button('M',  id="button_M",  block=True, size='sm')
-        ]),
-        dbc.Col([
-            dbc.Button('3M',  id="button_3M",  block=True, size='sm')
-        ]),
-        dbc.Col([
-            dbc.Button('Y',  id="button_Y",  block=True, size='sm')
-        ])
-    ]
+# -- reslut of upgrade to Dash Version xxx 
+#   the 'block'-feature does not exist anymore.  
+#     return [
+#         dbc.Col([
+# #            dbc.Button('5D',  id="button_5D", block=True, size='sm')
+#             dbc.Button('5D',  id="button_5D", size='sm')
+#         ]),
+#         dbc.Col([
+# #            dbc.Button('M',  id="button_M",  block=True, size='sm')
+#             dbc.Button('M',  id="button_M", size='sm')
+#         ]),
+#         dbc.Col([
+# #            dbc.Button('3M',  id="button_3M",  block=True, size='sm')
+#             dbc.Button('3M',  id="button_3M", size='sm')
+#         ]),
+#         dbc.Col([
+# #            dbc.Button('Y',  id="button_Y",  block=True, size='sm')
+#             dbc.Button('Y',  id="button_Y", size='sm')
+#         ])
+#     ]
 
+
+# render as ButtonGroup
+    return [dbc.ButtonGroup([
+            dbc.Button('5D',  id="button_5D",outline=True, color="primary", size='sm'),
+            dbc.Button('M',  id="button_M",outline=True, color="primary", size='sm'),
+            dbc.Button('3M',  id="button_3M",outline=True, color="primary", size='sm'),
+            dbc.Button('Y',  id="button_Y", outline=True, color="primary",size='sm')
+    ])
+    ]
 # --- End def renderButtons
 
 
@@ -516,6 +566,39 @@ def renderButtons(app):
 # -----------------------------------------------------------------------
 def renderButtonIndicators(app):
     
+    #----------------------------------------------------------------------------------
+    # function
+    # set up the indicator graph showing the performace between start and end data.
+    # Indicators below the buttons
+    # Plotly Indicators in Python: https://plotly.com/python/indicator/
+    # Plotly Reference: indicator: https://plotly.com/python/reference/indicator/
+    # Input 
+    #      day_start: 
+    #       day_end  :
+    #
+    # output
+    #       fig: plotly-figure object
+    #----------------------------------------------------------------------------------
+    def indicatorPerformance(day_start, day_end):
+
+        fig = go.Figure(go.Indicator(
+            mode="delta",
+            value=day_end,
+            delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
+        
+        fig.update_traces(delta_font={'size':20})
+        fig.update_traces(number_font={'size':20})
+        fig.update_layout(height=60, width=120)
+
+        if day_end >= day_start:
+            fig.update_traces(delta_increasing_color='green')
+        elif day_end < day_start:
+            fig.update_traces(delta_decreasing_color='red')
+        
+        return fig
+    # --- End 'indicatorPerformance'
+
+
     # Indicator Graphs below the buttons
     @app.callback([
         Output('indicator-graph', 'figure'),
@@ -570,38 +653,6 @@ def renderButtonIndicators(app):
 
 
 
-#----------------------------------------------------------------------------------
-# function
-# set up the indicator graph showing the performace between start and end data.
-# Indicators below the buttons
-# Plotly Indicators in Python: https://plotly.com/python/indicator/
-# Plotly Reference: indicator: https://plotly.com/python/reference/indicator/
-# Input 
-#      day_start: 
-#       day_end  :
-#
-# output
-#       fig: plotly-figure object
-#----------------------------------------------------------------------------------
-def indicatorPerformance(day_start, day_end):
-
-    fig = go.Figure(go.Indicator(
-        mode="delta",
-        value=day_end,
-        delta={'reference': day_start, 'relative': True, 'valueformat':'.2%'}))
-    
-    fig.update_traces(delta_font={'size':20})
-    fig.update_traces(number_font={'size':20})
-    fig.update_layout(height=60, width=120)
-
-    if day_end >= day_start:
-        fig.update_traces(delta_increasing_color='green')
-    elif day_end < day_start:
-        fig.update_traces(delta_decreasing_color='red')
-    
-    return fig
-# --- End 'indicatorPerformance'
-
 # ----------------------------------------------------
 # def create_layout():
 # Function to set up the layout.
@@ -614,21 +665,23 @@ def create_layout(app):
                 dbc.Row([
                     dbc.Col([
                         dbc.Row(renderDataTable(app), 
-                            style={"width": "50rem", 'padding': '5px'},
-                            className="mt-6"),     
+                            style={"width": "45rem", 'padding': '5px'},
+                            className="mt-6"),
+                    #    dbc.Row(renderDropdown(app)),         
                         dbc.Card([
                                 dbc.CardBody([
-                                    dbc.Row(renderStockHeader(app),  justify="between"),
+                                    dbc.Row(renderStockHeader(app)),
                                     dbc.Row(renderStockTimeSeries(app)),
-                                    dbc.Row(renderButtons(app), justify="between"),
+                                    dbc.Row(renderButtons(app), 
+                                    className="radio-group md-md-block"),
                                     dbc.Row(renderButtonIndicators(app), justify="between"),
                                 ]),
                             ],
-                            style={"width": "50rem"},
+                            style={"width": "43rem"},
                             className="mt-3"
                         )
                     ], width=6)
-                ], justify='center'),
+                ]),
 
                 dcc.Interval(id='update', n_intervals=0, interval=1000*3600)
             ])
@@ -653,6 +706,8 @@ def stockTimetrace():
     for ticker in tickers:
         df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
     
+    print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+    
     return df
 
 # --- End 'stockTimetrace'
@@ -660,16 +715,23 @@ def stockTimetrace():
 
 df_all = stockTimetrace()
 
+#print(df_all[tickers[0]].head())
+#print(df_all[tickers[0]].tail())
 
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-external_stylesheets =[dbc.themes.BOOTSTRAP]
+#external_stylesheets =[dbc.themes.BOOTSTRAP]
 
 # set the tab-titel
 # Dash v1.14.0 Released - Update the Tab’s Title, Removing the “Updating…” Messages, Updated DataTable Link Behavior
 #    https://community.plotly.com/t/dash-v1-14-0-released-update-the-tabs-title-removing-the-updating-messages-updated-datatable-link-behavior/43080  
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
+# app = Dash(__name__, external_stylesheets=external_stylesheets,
+#                 title='StockViewer',
+#                 meta_tags=[{'name': 'viewport',
+#                             'content': 'width=device-width, initial-scale=1.0'}]
+#                 )
+app = Dash(__name__, external_stylesheets=[BOOTSTRAP],
                 title='StockViewer',
                 meta_tags=[{'name': 'viewport',
                             'content': 'width=device-width, initial-scale=1.0'}]
