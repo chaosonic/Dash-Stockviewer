@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+
+  dash:
+    build:
+      context: .
+      dockerfile: Dockerfile.dash
+    container_name: stockvis_dash_new
+    command: python stockviewer.py
+    restart: unless-stopped
+    ports:
+      - 8060:8060
+    network_mode: host
+    privileged: true
+    volumes:
+      - .:/code
+
+

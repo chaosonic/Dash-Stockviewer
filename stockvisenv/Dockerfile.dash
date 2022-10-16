@@ -1,0 +1,11 @@
+# https://stackoverflow.com/questions/63106824/docker-build-network-error-when-trying-to-pip-install
+FROM python:3.9.13-bullseye
+
+ENV PYTHONUNBUFFERED 1
+RUN mkdir /code
+WORKDIR /code
+
+COPY requirements.txt /code/
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && /usr/local/bin/python -m pip install --upgrade pip && pip install -r requirements.txt
+COPY . /code/
+
