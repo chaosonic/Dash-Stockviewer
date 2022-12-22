@@ -1,7 +1,9 @@
 import datetime as dt
 import numpy as np                         # pip install numpy
 import pandas as pd                        # pip install panda
-import pandas_datareader as web
+#import pandas_datareader as web
+from pandas_datareader import data as pdr
+import yfinance as yf
 
 from dash import Dash, dcc, html, Input, Output, ctx  # pip install dash
 from dash import dash_table
@@ -22,6 +24,7 @@ import plotly.graph_objects as go
 # Get Dates From DateEntry and Convert It To Datetime
 from_date = dt.datetime(2020, 5, 1)
 to_date = dt.datetime.now()
+yf.pdr_override()
 
 # define the dictionary of panda-dataframe that contain the stock data
 df_all = {}
@@ -588,6 +591,7 @@ def renderButtonIndicators(app):
         
         fig.update_traces(delta_font={'size':20})
         fig.update_traces(number_font={'size':20})
+
         fig.update_layout(height=60, width=120)
 
         if day_end >= day_start:
@@ -704,9 +708,10 @@ def stockTimetrace():
     df = {}
 
     for ticker in tickers:
-        df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
-    
-    print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+      #  df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
+        df[ticker] = pdr.get_data_yahoo(ticker, 
+        start=from_date, end=to_date,  progress=False)
+    # print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
     
     return df
 
@@ -741,4 +746,5 @@ app.layout = create_layout(app)
 
 
 if __name__ == '__main__':
-  app.run_server(debug=True)
+#  app.run_server(host='0.0.0.0', port=8060, debug=True)
+   app.run_server(port=8060, debug=True)

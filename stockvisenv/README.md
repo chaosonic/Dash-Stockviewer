@@ -20,7 +20,7 @@ the name of the virtual environment is `stockvisenv`
 
  On Windows:
 
-`$> .\stockvisenv\Scripts\activate`
+`$> .\stockvisenv\Scripts\activate.ps1`
 
 #### **Working with the virtual environment**
 
@@ -59,7 +59,7 @@ intelligent copying of the code from the links below.
 
 something like this will be displayed to the terminal:
 ~~~
-Dash is running on http://127.0.0.1:8050/
+Dash is running on http://127.0.0.1:8060/
 
  * Serving Flask app "app" (lazy loading)
  * Environment: production
@@ -86,6 +86,21 @@ Go to the browser an navigate to `http://127.0.0.1:8050/` to see something like 
 * add a table showing all the stocks and their performance (1D, 5D, M, 3M, Y).
 * The rows of the table are selectable. The chart and the performance indicators change accordingly 
 * The dropdown-menu has been disabled. In the code it has been commented out. 
+
+### Deployment using Docker (docker-compose)
+
+Tested on a Raspberry Pi 4.
+Build the Docker-image
+~~~bash
+$> docker-compose build
+~~~
+run the docker-container
+~~~bash
+$> docker-compose up -d
+~~~
+In the browser navigate to `http://<ip of pi>:8060`
+
+
 
 ### Further ideas
 - Conditional datatable. 

@@ -1,11 +1,14 @@
 ## TODO
-- [ ] Refactor the 'import' declarations to `from dash import Dash, dcc, html, Input, Output
+- [x] Refactor the 'import' declarations to `from dash import Dash, dcc, html, Input, Output
 ` instead of `import dash_core_components as dcc` - this is Python 3.9-stuff --> move over to virtual env. `DashTest`
-- [ ] Add multi-selection [dropdown](https://dash.plotly.com/dash-core-components/dropdown) with plot-options - like short EMA/ long EMA / candlestick 
+- [ ] Add multi-selection [dropdown](https://dash.plotly.com/dash-core-components/dropdown) with plot-options - like short EMA/ long EMA / candlestick / Volume
+- [ ] Create multiple reads for different stock-sources Yahoo, Alphavantage, Quandl yielding the same dataframe to work with --> see `DashTest\dashTest_Alphavantage.py`
+- [ ] Refactor: can usage of `sLength = len(df) --> df['Close'].iloc[sLength-1]` be written with something like  `df['Close'].iloc[:]`
 - [x] add moving averages (start with simple moving average) 
       hard-coded fast ema=12 and medium ema = 26
     - [x] locate the legend depending if increase or decrease- legend is selectabel
 - [x] combine the logo- and the header-callback, which only take the `Input('datatable', "selected_rows")` as input, to one callback.
+- [ ] Document Docker deployment
 
 ## contents of the pandas-dataframe with stock-data
 
@@ -45,6 +48,28 @@ Date
 2022-09-30  69.396004  67.968002  68.487999  67.968002    4873  67.968002
 ~~~
 
+#### Breaking change in Yahoo-API - work-around available
+Dec. 15 2022 - some breaking changes in the Yahoo-API that broke compatibility with previous pandas datareader versions.
+As per the discussion [on pydata/pandas-datareader](https://github.com/pydata/pandas-datareader/issues/952) and [Stackoverflow](https://stackoverflow.com/questions/74832296/typeerror-string-indices-must-be-integers-when-getting-data-of-a-stock-from-y).
+A work around is implemented:
+~~~python
+#import pandas_datareader as web
+from pandas_datareader import data as pdr
+import yfinance as yf
+yf.pdr_override()
+
+def stockTimetrace():
+    df = {}
+    for ticker in tickers:
+      # this line is commented out  
+      #  df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
+      # this line is added
+        df[ticker] = pdr.get_data_yahoo(ticker, 
+        start=from_date, end=to_date,  progress=False)
+    # print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+    return df
+~~~
+
 
 ### retrieve historical financial stock data from Alphavantage
 
@@ -52,7 +77,7 @@ Date
 from alpha_vantage.timeseries import TimeSeries
 from pprint import pprint
 
-api_key = 'Z5D7ULNFNFRCQHIR'
+api_key = '<your AV-Key>'
 
 ts = TimeSeries(key=api_key, output_format='pandas')
  
@@ -74,6 +99,7 @@ pprint(data.head(3))
 pprint(data.tail(3))
 
 ~~~
+
 
 ## add a datatable
 
@@ -323,3 +349,21 @@ def graph_1_callback(timer1, chosen_rows):
 
 
 ~~~
+
+### timeline
+* Initial versions: 
+    * Python 3.8.5
+    * dash==1.19.0
+    * dash-bootstrap-components==0.11.3
+    * plotly==4.14.3
+    * numpy==1.20.1
+    * pandas==1.2.3
+    * pandas-datareader==0.10.0
+
+* Update to Python 3.9.13 & Dash 2.6.1
+    * dash==2.6.1
+    * dash-bootstrap-components==1.2.1
+    * plotly==5.10.0
+    * numpy==1.23.2
+    * pandas==1.4.4
+    * pandas-datareader==0.10.0

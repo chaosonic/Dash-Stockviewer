@@ -4,3 +4,4 @@ plotly==5.10.0
 numpy==1.23.2
 pandas==1.4.4
 pandas-datareader==0.10.0
+yfinance==0.2.3
