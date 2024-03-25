@@ -4,8 +4,8 @@ Lib/
 etc/
 share/
 experimental/
-data/__pycache__
-components/__pycache__
+data/__pycache__/
+components/__pycache__/
 pyvenv.cfg
 Stockviewer_v03.py
 Stockviewer_v03a.py
