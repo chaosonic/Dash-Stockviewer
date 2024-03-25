@@ -1,38 +1,41 @@
 #import datetime as dt
-import numpy as np                         # pip install numpy
-import pandas as pd                        # pip install panda
+#import numpy as np                         # pip install numpy
+#import pandas as pd                        # pip install panda
 #import pandas_datareader as web
-from pandas_datareader import data as pdr
-import yfinance as yf
+#from pandas_datareader import data as pdr
+#import yfinance as yf
 
 from dash import Dash, dcc, html, Input, Output, ctx  # pip install dash
-from dash import dash_table
-from dash.dash_table import DataTable, FormatTemplate
+#from dash import dash_table
+#from dash.dash_table import DataTable, FormatTemplate
 
 from dash_bootstrap_components.themes import BOOTSTRAP
 
-from dash.dash_table.Format import Sign, Format, Symbol
-from collections import OrderedDict
+#from dash.dash_table.Format import Sign, Format, Symbol
+#from collections import OrderedDict
 
-import dash_bootstrap_components as dbc    # pip install dash-bootstrap-components
-from dash_bootstrap_components._components.Col import Col
-from dash_bootstrap_components._components.Row import Row
+#import dash_bootstrap_components as dbc    # pip install dash-bootstrap-components
+#from dash_bootstrap_components._components.Col import Col
+#from dash_bootstrap_components._components.Row import Row
 
-import plotly.graph_objects as go
+#import plotly.graph_objects as go
 
 # --- project imports
 from src.data.stockTimeTrace import stockTimetrace, tickers, tickers_titels, tickers_logos, stockPeriods, from_date, to_date
-from src.components.timeIntervallButtons import renderButtons
-from src.components.timeIntervallIndicators import renderButtonIndicators
-from src.components.stockHeader import renderStockHeader
+#from src.components.timeIntervallButtons import renderButtons
+#from src.components.timeIntervallIndicators import renderButtonIndicators
+#from src.components.stockHeader import renderStockHeader
+#from src.components.stockTimeSeries import renderStockTimeSeries
+#from src.components.stockTable import renderDataTable
+from src.components.layout import create_layout
 
 # Get Dates From DateEntry and Convert It To Datetime
 #from_date = dt.datetime(2020, 5, 1)
 #to_date = dt.datetime.now()
-yf.pdr_override()
+#yf.pdr_override()
 
 # define the dictionary of panda-dataframe that contain the stock data
-df_all = {}
+#df_all = {}
 
 #ticker = 'LYYA.F'   # Lyxor MSCI World - Frankfurt
 #ticker = 'BMW.DE'   # BMW
@@ -67,7 +70,7 @@ df_all = {}
 
 # stockPeriods = [1, 5, 20, 60, 300]
 
-
+'''
 # -----------------------------------------------------------------------
 # def renderDataTable(app):
 # Function for the Datatable-entry in the layout.
@@ -236,8 +239,8 @@ def renderDataTable(app):
 
 # --- End def renderDatatable
 # ----------------------------------------------------
-
-
+'''
+'''
 # -----------------------------------------------------------------------
 # def renderDropdown(app):
 # Function to render the dropdown to select the things to plot in the timeseries
@@ -258,7 +261,7 @@ def renderDropdown(app):
 
 # --- End def renderDropdown(app):
 # ----------------------------------------------------
- 
+''' 
 
 # -----------------------------------------------------------------------
 # def renderStockHeader(app):
@@ -358,7 +361,7 @@ def renderStockHeader(app: Dash):
 # --- End def renderStockHeader(app):
 # ----------------------------------------------------
 ''' 
-
+'''
 # -----------------------------------------------------------------------
 # def renderStockGraph(app):
 # Function to render the stock timeseries in the layout.
@@ -526,7 +529,7 @@ def renderStockTimeSeries(app):
         ]
 
 # --- End function 'renderStockTimeSeries'
-
+'''
 #- 25.03.24 moved to componeents.timeIntervallButtons.py
 # -----------------------------------------------------------------------
 # def renderButtons(app):
@@ -672,19 +675,20 @@ def renderButtonIndicators(app):
 # a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
 #
 # ----------------------------------------------------
-def create_layout(app):
+'''
+def create_layout(app: Dash, df_all: pd.DataFrame):
 
     return dbc.Container([
                 dbc.Row([
                     dbc.Col([
-                        dbc.Row(renderDataTable(app), 
+                        dbc.Row(renderDataTable(app, df_all), 
                             style={"width": "45rem", 'padding': '5px'},
                             className="mt-6"),
                     #    dbc.Row(renderDropdown(app)),         
                         dbc.Card([
                                 dbc.CardBody([
                                     dbc.Row(renderStockHeader(app, df_all)),
-                                    dbc.Row(renderStockTimeSeries(app)),
+                                    dbc.Row(renderStockTimeSeries(app, df_all)),
                                     dbc.Row(renderButtons(app), 
                                     className="radio-group md-md-block"),
                                     dbc.Row(renderButtonIndicators(app, df_all), justify="between"),
@@ -700,7 +704,7 @@ def create_layout(app):
             ])
 
 # --- End 'stockTimetrace'
-
+'''
 
 # 24.03.24: refactor - moved to .src.data.stockTimeTrace
 # ----------------------------------------------------
@@ -727,7 +731,7 @@ def create_layout(app):
 # --- End 'stockTimetrace'
 
 
-df_all = stockTimetrace(tickers, [from_date, to_date])
+#df_all = stockTimetrace(tickers, [from_date, to_date])
 
 #print(df_all[tickers[0]].head())
 #print(df_all[tickers[0]].tail())
@@ -747,13 +751,17 @@ df_all = stockTimetrace(tickers, [from_date, to_date])
 #                 )
 
 def main() -> None:
+
+
+    df_all = stockTimetrace(tickers, [from_date, to_date])
+
     app = Dash(__name__, external_stylesheets=[BOOTSTRAP],
                     title='StockViewer',
                     meta_tags=[{'name': 'viewport',
                                 'content': 'width=device-width, initial-scale=1.0'}]
                     )
 
-    app.layout = create_layout(app)
+    app.layout = create_layout(app, df_all)
     app.run_server(port=8060, debug=True)
 
 if __name__ == '__main__':
