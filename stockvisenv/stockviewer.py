@@ -2,7 +2,7 @@ from dash import Dash  # pip install dash
 from dash_bootstrap_components.themes import BOOTSTRAP
 
 # --- project imports
-from src.data.stockTimeTrace import stockTimetrace, tickers, tickers_titels, tickers_logos, stockPeriods, from_date, to_date
+from src.data.stockTimeTrace import stockTimetrace, tickers, from_date, to_date
 from src.components.layout import create_layout
 
 

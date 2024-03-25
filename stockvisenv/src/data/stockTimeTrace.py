@@ -1,5 +1,6 @@
 from pandas_datareader import data as pdr
 import datetime as dt
+import yfinance as yf
 
 # The final idea behind this file, is that here all 
 # the data will be read or imported. 
@@ -46,6 +47,9 @@ stockPeriods = [1, 5, 20, 60, 300]
 # Get Dates From DateEntry and Convert It To Datetime
 from_date = dt.datetime(2020, 5, 1)
 to_date = dt.datetime.now()
+
+yf.pdr_override()
+
 
 # ----------------------------------------------------
 # def stockTimetrace():
