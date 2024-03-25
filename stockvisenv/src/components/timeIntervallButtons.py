@@ -1,3 +1,4 @@
+from dash import Dash
 import dash_bootstrap_components as dbc    # pip install dash-bootstrap-components
 
 # -----------------------------------------------------------------------
@@ -6,7 +7,7 @@ import dash_bootstrap_components as dbc    # pip install dash-bootstrap-componen
 # a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
 #
 # -----------------------------------------------------------------------
-def renderButtons(app):
+def renderButtons(app: Dash) -> dbc:
 
 # render as ButtonGroup
     return [dbc.ButtonGroup([

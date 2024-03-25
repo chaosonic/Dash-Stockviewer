@@ -21,7 +21,7 @@ from ..data.stockTimeTrace import tickers, tickers_titels, stockPeriods
 # a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
 #
 # -----------------------------------------------------------------------
-def renderDataTable(app: Dash, df_all: pd.DataFrame):
+def renderDataTable(app: Dash, df_all: pd.DataFrame)  -> dbc:
 
     TABLE_HEADER = ['Stock name', 'Price', '1 day', '5 days', '1 Month ', '3 Months', 'Year']
 
