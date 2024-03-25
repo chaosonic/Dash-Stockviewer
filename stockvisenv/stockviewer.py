@@ -1,4 +1,4 @@
-import datetime as dt
+#import datetime as dt
 import numpy as np                         # pip install numpy
 import pandas as pd                        # pip install panda
 #import pandas_datareader as web
@@ -20,10 +20,15 @@ from dash_bootstrap_components._components.Row import Row
 
 import plotly.graph_objects as go
 
+# --- project imports
+from src.data.stockTimeTrace import stockTimetrace, tickers, tickers_titels, tickers_logos, stockPeriods, from_date, to_date
+from src.components.timeIntervallButtons import renderButtons
+from src.components.timeIntervallIndicators import renderButtonIndicators
+from src.components.stockHeader import renderStockHeader
 
 # Get Dates From DateEntry and Convert It To Datetime
-from_date = dt.datetime(2020, 5, 1)
-to_date = dt.datetime.now()
+#from_date = dt.datetime(2020, 5, 1)
+#to_date = dt.datetime.now()
 yf.pdr_override()
 
 # define the dictionary of panda-dataframe that contain the stock data
@@ -39,15 +44,16 @@ df_all = {}
 # add something else
 
 # 15.02.22: /\|_=)(: changed RDSA.AS to  R6C0.F
-tickers = ['EUNL.F', 'BMW.F',  'R6C0.F', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS', 'IS3N.F']
-tickers_titels = ['iShares MSCI World ETF', 
-                  'BMW', 
-                  'Shell A', 
-                  'AMD', 
-                  'Van Eck Gaming ETF', 
-                  'Xiaomi', 
-                  'ASML',
-                  'iShares Core MSCI EM IMI']
+#tickers = ['EUNL.F', 'BMW.F',  'R6C0.F', 'AMD.F', 'ESP0.F', '3CP.SG', 'ASML.AS', 'IS3N.F', 'EXSA.DE']
+#tickers_titels = ['iShares MSCI World ETF', 
+#                  'BMW', 
+#                  'Shell A', 
+#                  'AMD', 
+#                  'Van Eck Gaming ETF', 
+#                  'Xiaomi', 
+#                  'ASML',
+#                  'iShares Core MSCI EM IMI',
+#                  'iShares Stoxx Euro 600']
 
 
 # correspondig png
@@ -59,7 +65,7 @@ tickers_titels = ['iShares MSCI World ETF',
 # vaneck https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png
 
 
-stockPeriods = [1, 5, 20, 60, 300]
+# stockPeriods = [1, 5, 20, 60, 300]
 
 
 # -----------------------------------------------------------------------
@@ -73,16 +79,16 @@ def renderDataTable(app):
     TABLE_HEADER = ['Stock name', 'Price', '1 day', '5 days', '1 Month ', '3 Months', 'Year']
 
  
-    @app.callback(
-       Output('datatable', 'data'), 
-      Input('update', "n_intervals")
-      )
-    def update_stockdata(timer1):
-        #print('reading stocks')
-        global df_all 
-        df_all= stockTimetrace()
+#    @app.callback(
+#       Output('datatable', 'data'), 
+#      Input('update', "n_intervals")
+#      )
+#    def update_stockdata(timer1):
+#        #print('reading stocks')
+#        global df_all 
+#        df_all= stockTimetrace()
 
-        return stockPerformanceTable()
+#        return stockPerformanceTable()
         
     # set up the columns-dictionary for the data table
     # columns are [Stock name / 1D / 5D / M / 3M / Y]
@@ -259,17 +265,19 @@ def renderDropdown(app):
 # Function to render the Header of the Stocktimeseries
 # Displaying a Stock-logo, the Stock-title and the closing price with percentage indicator
 # -----------------------------------------------------------------------
-def renderStockHeader(app):
+'''
+def renderStockHeader(app: Dash):
 
-    tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
-                    "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
-                    "https://upload.wikimedia.org/wikipedia/de/7/74/Royal_Dutch_Shell.svg",
-                    "https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg",
-                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png",
-                    "https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg",
-                    "https://upload.wikimedia.org/wikipedia/commons/6/6c/ASML_Holding_N.V._logo.svg",
-                    "https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg"
-                    ]
+#    tickers_logos = ["https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
+#                    "https://upload.wikimedia.org/wikipedia/de/7/74/Royal_Dutch_Shell.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Vaneck-logo-vector.png/320px-Vaneck-logo-vector.png",
+#                    "https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/6/6c/ASML_Holding_N.V._logo.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg",
+#                    "https://upload.wikimedia.org/wikipedia/commons/d/d8/Logo-ishares_2019.svg"
+#                    ]
 
     # 
     # Plotly Dash: How to change header title based on user input?
@@ -349,7 +357,7 @@ def renderStockHeader(app):
         ]
 # --- End def renderStockHeader(app):
 # ----------------------------------------------------
- 
+''' 
 
 # -----------------------------------------------------------------------
 # def renderStockGraph(app):
@@ -519,14 +527,14 @@ def renderStockTimeSeries(app):
 
 # --- End function 'renderStockTimeSeries'
 
-
+#- 25.03.24 moved to componeents.timeIntervallButtons.py
 # -----------------------------------------------------------------------
 # def renderButtons(app):
 # Function to render the buttons in the layout.
 # a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
 #
 # -----------------------------------------------------------------------
-def renderButtons(app):
+#def renderButtons(app):
 
 # -- reslut of upgrade to Dash Version xxx 
 #   the 'block'-feature does not exist anymore.  
@@ -550,14 +558,14 @@ def renderButtons(app):
 #     ]
 
 
-# render as ButtonGroup
-    return [dbc.ButtonGroup([
-            dbc.Button('5D',  id="button_5D",outline=True, color="primary", size='sm'),
-            dbc.Button('M',  id="button_M",outline=True, color="primary", size='sm'),
-            dbc.Button('3M',  id="button_3M",outline=True, color="primary", size='sm'),
-            dbc.Button('Y',  id="button_Y", outline=True, color="primary",size='sm')
-    ])
-    ]
+# render as ButtonGroup - 25.03.24 moved to componeents.timeIntervallButtons.py
+#    return [dbc.ButtonGroup([
+#            dbc.Button('5D',  id="button_5D",outline=True, color="primary", size='sm'),
+#            dbc.Button('M',  id="button_M",outline=True, color="primary", size='sm'),
+#            dbc.Button('3M',  id="button_3M",outline=True, color="primary", size='sm'),
+#            dbc.Button('Y',  id="button_Y", outline=True, color="primary",size='sm')
+#    ])
+#    ]
 # --- End def renderButtons
 
 
@@ -567,6 +575,7 @@ def renderButtons(app):
 # a bit like ArjanCode [Part1](https://www.youtube.com/watch?v=XOFrvzWFM7Y),
 #
 # -----------------------------------------------------------------------
+'''
 def renderButtonIndicators(app):
     
     #----------------------------------------------------------------------------------
@@ -654,7 +663,7 @@ def renderButtonIndicators(app):
         ]
 
 # --- End Function 'renderButtonIndicators(app)'
-
+'''
 
 
 # ----------------------------------------------------
@@ -674,11 +683,11 @@ def create_layout(app):
                     #    dbc.Row(renderDropdown(app)),         
                         dbc.Card([
                                 dbc.CardBody([
-                                    dbc.Row(renderStockHeader(app)),
+                                    dbc.Row(renderStockHeader(app, df_all)),
                                     dbc.Row(renderStockTimeSeries(app)),
                                     dbc.Row(renderButtons(app), 
                                     className="radio-group md-md-block"),
-                                    dbc.Row(renderButtonIndicators(app), justify="between"),
+                                    dbc.Row(renderButtonIndicators(app, df_all), justify="between"),
                                 ]),
                             ],
                             style={"width": "43rem"},
@@ -693,7 +702,7 @@ def create_layout(app):
 # --- End 'stockTimetrace'
 
 
-
+# 24.03.24: refactor - moved to .src.data.stockTimeTrace
 # ----------------------------------------------------
 # def stockTimetrace():
 #
@@ -703,22 +712,22 @@ def create_layout(app):
 # https://stackoverflow.com/questions/33907776/how-to-create-an-array-of-dataframes-in-python
 #
 # ----------------------------------------------------
-def stockTimetrace():
+# def stockTimetrace():
 
-    df = {}
+#     df = {}
 
-    for ticker in tickers:
-      #  df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
-        df[ticker] = pdr.get_data_yahoo(ticker, 
-        start=from_date, end=to_date,  progress=False)
-    # print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+#     for ticker in tickers:
+#       #  df[ticker] = web.DataReader(ticker, 'yahoo', from_date, to_date)
+#         df[ticker] = pdr.get_data_yahoo(ticker, 
+#         start=from_date, end=to_date,  progress=False)
+#     # print('stockTimetrace: Reading Stocks at ' + dt.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
     
-    return df
+#     return df
 
 # --- End 'stockTimetrace'
 
 
-df_all = stockTimetrace()
+df_all = stockTimetrace(tickers, [from_date, to_date])
 
 #print(df_all[tickers[0]].head())
 #print(df_all[tickers[0]].tail())
@@ -736,15 +745,18 @@ df_all = stockTimetrace()
 #                 meta_tags=[{'name': 'viewport',
 #                             'content': 'width=device-width, initial-scale=1.0'}]
 #                 )
-app = Dash(__name__, external_stylesheets=[BOOTSTRAP],
-                title='StockViewer',
-                meta_tags=[{'name': 'viewport',
-                            'content': 'width=device-width, initial-scale=1.0'}]
-                )
 
-app.layout = create_layout(app)
+def main() -> None:
+    app = Dash(__name__, external_stylesheets=[BOOTSTRAP],
+                    title='StockViewer',
+                    meta_tags=[{'name': 'viewport',
+                                'content': 'width=device-width, initial-scale=1.0'}]
+                    )
 
+    app.layout = create_layout(app)
+    app.run_server(port=8060, debug=True)
 
 if __name__ == '__main__':
 #  app.run_server(host='0.0.0.0', port=8060, debug=True)
-   app.run_server(port=8060, debug=True)
+#   app.run_server(port=8060, debug=True)
+    main()
